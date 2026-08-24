@@ -17,6 +17,7 @@ Or install a specific skill:
 npx skills add kolyasya/skills --skill docs-maintainer
 npx skills add kolyasya/skills --skill git-branches-prune
 npx skills add kolyasya/skills --skill info-style-writing
+npx skills add kolyasya/skills --skill pr-creator
 npx skills add kolyasya/skills --skill pr-review-guided
 
 # Meteor Skills
@@ -37,6 +38,7 @@ npx skills add kolyasya/skills --skill meteor-supply-chain-audit
 | [`docs-maintainer`](#docs-maintainer) | Maintain repository documentation as a supplement to code | `npx skills add kolyasya/skills --skill docs-maintainer` |
 | [`git-branches-prune`](#git-branches-prune) | Batch cleanup of temporary remote branches after user approval | `npx skills add kolyasya/skills --skill git-branches-prune` |
 | [`info-style-writing`](#info-style-writing) | Clean up and refactor text using Information Style | `npx skills add kolyasya/skills --skill info-style-writing` |
+| [`pr-creator`](#pr-creator) | Create clear, focused PRs with structured descriptions, labels, and assignee | `npx skills add kolyasya/skills --skill pr-creator` |
 | [`pr-review-guided`](#pr-review-guided) | Guided, file-by-file GitHub PR review with user-controlled pacing | `npx skills add kolyasya/skills --skill pr-review-guided` |
 
 ### Meteor Skills
@@ -106,6 +108,25 @@ npx skills add kolyasya/skills --skill info-style-writing
 - Enforces active voice, strong verbs, and one idea per sentence.
 - Improves scannability and structural clarity.
 - Mandates editing passes and a self-check checklist.
+
+---
+
+#### `pr-creator`
+
+Create clear, focused GitHub pull requests with structured descriptions, proper labels, and assignee.
+
+```bash
+npx skills add kolyasya/skills --skill pr-creator
+```
+
+**Triggers on:** "create pr", "make a pr", "draft pr", "open pr", "submit pr", "open pull request", `pr-creator`.
+
+**Covers:**
+- Analyzes git status, commits, and diff to generate high-signal PR metadata
+- Formats descriptions with Why, What Changed, optional concise diagrams, Testing, and Review Focus
+- Researches repository labels dynamically via `gh` CLI and assigns the current user
+- Formats PR titles with imperative mood and non-default target branch indicators
+- Enforces self-review and supports safe draft PR creation
 
 ---
 
