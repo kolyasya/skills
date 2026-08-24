@@ -13,7 +13,7 @@ Create clear, focused GitHub pull requests (PRs) that transfer context in 30–6
 - **Speed to Context**: Reviewers must understand the problem, the solution, and verification steps before reading the diff.
 - **Why First**: Explain intent and necessity before implementation details.
 - **Mental Model over Diffs**: Describe architectural and behavioral changes, not line-by-line file edits.
-- **Atomic Scope**: One logical purpose per PR. If a change includes unrelated refactoring or dependency bumps, recommend splitting it.
+- **Atomic Scope**: One logical purpose per PR. Keep changes small. If a change exceeds size thresholds (> 500 lines changed or > 10 modified files), justify the large scope. If a change includes unrelated refactoring or dependency bumps, recommend splitting it.
 - **Self-Review Pass**: Catch leftover debug statements, unintentional file changes, and formatting errors before requesting review.
 
 ---
@@ -30,11 +30,14 @@ Create clear, focused GitHub pull requests (PRs) that transfer context in 30–6
 2. **Determine Target Base Branch**:
    - Default to `main` (or `staging` / repository-defined base branch).
    - If the target branch is not the default production branch (e.g., `staging`), reflect it in the PR title.
-3. **Inspect Diff and Commit History**:
+3. **Inspect Diff and Change Size**:
    ```bash
    git log -n 5 --oneline
    git diff origin/<base-branch>...HEAD --stat
    ```
+   - Calculate total changed lines and modified files.
+   - Exclude lockfiles (e.g., `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`) and build artifacts from this count.
+   - Flag as a **Large PR** if the change exceeds **500 lines changed** or **10 modified files**.
 4. **Identify UI Changes**:
    - Check if frontend assets, styles, or components were modified.
    - If UI changes exist, prompt or remind to attach screenshots or screen recordings.
@@ -83,6 +86,9 @@ Apply the **`info-style-writing`** skill to draft all PR text. If the skill is a
 
 <!-- Optional: Small diagram/schema if it clarifies architecture or data flow. Avoid large, complex schemas. -->
 
+## Why This PR Is Large
+<!-- Required only if > 500 lines changed or > 10 files modified (excluding lockfiles and build artifacts). Explain why this change could not be split. -->
+
 ## Testing
 <!-- Specific manual verification steps or automated test coverage. -->
 
@@ -95,6 +101,10 @@ Apply the **`info-style-writing`** skill to draft all PR text. If the skill is a
 - **Why**: 1–3 sentences stating the root problem and justification. Do not copy-paste full ticket requirements.
 - **What Changed**: Summarize system behavior changes. Focus on architecture, data flow, and user impact.
 - **Diagram / Schema (Optional)**: Include a short Mermaid diagram or ASCII flow **only** if it briefly explains a non-obvious state transition or architecture flow. Never include massive schemas.
+- **Why This PR Is Large**:
+  - Include this section **only** if real changes exceed 500 lines or 10 files. Omit for standard PRs.
+  - Explain why the PR cannot be split into smaller units (e.g., mechanical refactor, broad migration, or tightly coupled components).
+  - **Clarification Rule**: If the reason is clear from the session context or git log, draft it directly. If the reason is not known, ask the user directly in chat before generating the description.
 - **Testing**:
   - State concrete test cases (e.g., *"Added unit tests for token expiration. Manually tested edge cases with 0, 1, and 100 items."*).
   - **If testing is unclear from context/discussion**: Omit the `## Testing` section entirely and notify the user in the final summary.
