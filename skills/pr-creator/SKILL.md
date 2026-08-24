@@ -58,6 +58,14 @@ Create clear, focused GitHub pull requests (PRs) that transfer context in 30–6
 
 ### Step 3: Draft PR Title and Description
 
+Apply the **`info-style-writing`** skill to draft all PR text. If the skill is available in the environment, load and follow its rules strictly:
+
+- **Facts over adjectives**: Replace evaluative terms (*"cleaner"*, *"faster"*, *"better"*) with concrete mechanisms and numbers (*"reduces query count from N to 1"*).
+- **Cut garbage words**: Remove filler phrases (*"in order to"*, *"due to the fact that"*, *"it is important to note"*).
+- **Active voice & strong verbs**: State directly what the system or user does.
+- **One idea per sentence**: Split overloaded explanations.
+- **Reader value**: Focus strictly on what the reviewer needs to understand the change.
+
 #### 1. PR Title Rules
 - Use imperative mood: *"Add pagination to user activity list"* (not *"Added pagination"* or *"Pagination changes"*).
 - Stand alone without opening the PR.
@@ -91,6 +99,9 @@ Create clear, focused GitHub pull requests (PRs) that transfer context in 30–6
   - State concrete test cases (e.g., *"Added unit tests for token expiration. Manually tested edge cases with 0, 1, and 100 items."*).
   - **If testing is unclear from context/discussion**: Omit the `## Testing` section entirely and notify the user in the final summary.
 - **Review Focus**: Include only when specific risks exist (e.g., database migrations, heavy queries, critical security paths).
+
+#### 4. Completion Criterion
+All drafted text must pass the `info-style-writing` self-check (reader value first, active voice, zero fluff, verified facts) before presenting or submitting.
 
 ---
 

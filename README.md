@@ -123,6 +123,7 @@ npx skills add kolyasya/skills --skill pr-creator
 
 **Covers:**
 - Analyzes git status, commits, and diff to generate high-signal PR metadata
+- Applies `info-style-writing` to remove fluff and present facts over adjectives
 - Formats descriptions with Why, What Changed, optional concise diagrams, Testing, and Review Focus
 - Researches repository labels dynamically via `gh` CLI and assigns the current user
 - Formats PR titles with imperative mood and non-default target branch indicators
