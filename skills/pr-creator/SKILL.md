@@ -1,6 +1,7 @@
 ---
 name: pr-creator
-description: Create clear, focused GitHub pull requests with structured descriptions, proper labels, and assignee. Use when preparing, drafting, or submitting a PR. Trigger on: "create pr", "make a pr", "draft pr", "open pr", "submit pr", "open pull request", "pr-creator".
+description: >
+  Create clear, focused GitHub pull requests with structured descriptions, proper labels, and assignee. Use when preparing, drafting, or submitting a PR. Trigger on: "create pr", "make a pr", "draft pr", "open pr", "submit pr", "open pull request", "pr-creator".
 ---
 
 # Pull Request Creator
