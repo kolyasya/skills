@@ -143,7 +143,8 @@ npx skills add kolyasya/skills --skill pr-review-guided
 
 **Covers:**
 - Fetches PR diff via `gh` CLI or local `git diff`
-- Sorts changed files by size (smallest first) to build context incrementally
+- Automatically detects and filters lockfiles and generated files from the main review queue
+- Sorts reviewable files by size (smallest first) to build context incrementally
 - Reviews one file per turn — user says "next" to advance, "skip" to defer, "done" to end
 - Reads surrounding codebase context only when needed to confirm a real defect
 - Respects project-specific `PR_REVIEW_INSTRUCTIONS.md` when present; falls back to `code-reviewer` or `caveman-review` skill standards

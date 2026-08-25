@@ -1,6 +1,6 @@
 ---
 name: pr-review-guided
-description: Guided, file-by-file PR review where the user controls the pace. Fetches the PR diff and metadata (using gh CLI, GitHub MCP, or local git fallbacks), sorts all changed files by number of lines (smallest first), reviews them one-by-one as the user says "next", and validates repository merge and branch rules. For each file it shows the diff, reads relevant surrounding context from the codebase (callers, schemas, tests) only when needed to confirm a bug, then gives a concise analysis and verdict. Flags real defects inline with exact fix proposals. Respects project-specific PR_REVIEW_INSTRUCTIONS.md, AGENTS.md, and merge safety rules. Use this skill whenever someone wants to review a GitHub PR interactively, step through a PR file by file, or do a guided code review of a pull request. Also triggers on "review pr", "sequential review", "file by file review", "let's review this PR together", "auto review", or "automated review".
+description: Guided, file-by-file PR review where the user controls the pace. Fetches the PR diff and metadata (using gh CLI, GitHub MCP, or local git fallbacks), filters out lockfiles and generated files, sorts reviewable files by number of lines (smallest first), reviews them one-by-one as the user says "next", and validates repository merge and branch rules. For each file it shows the diff, reads relevant surrounding context from the codebase (callers, schemas, tests) only when needed to confirm a bug, then gives a concise analysis and verdict. Flags real defects inline with exact fix proposals. Respects project-specific PR_REVIEW_INSTRUCTIONS.md, AGENTS.md, and merge safety rules. Use this skill whenever someone wants to review a GitHub PR interactively, step through a PR file by file, or do a guided code review of a pull request. Also triggers on "review pr", "sequential review", "file by file review", "let's review this PR together", "auto review", or "automated review".
 ---
 
 # Guided PR Review
@@ -16,6 +16,7 @@ Detect mode from the user's request. Triggers for automated: "auto", "automated 
 
 Large PRs are overwhelming when dumped all at once. Reviewing smallest files first:
 - Builds context cheaply before hitting complex files
+- Filters out lockfile and generated code noise early
 - Lets the user ask questions or request skips without losing track
 - Surfaces the full picture before diving into 100-line diffs
 
@@ -65,18 +66,29 @@ Attempt to fetch the PR metadata using the following strategies in order:
 
 Extract: title, base branch, head branch, description/requirements, and any acceptance criteria.
 
-### 4. Fetch and sort changed files
+### 4. Fetch, sort, and classify changed files
 
-Build a sorted list of all changed files by **total lines changed (additions + deletions), ascending**, including new and test files. Choose the first available method:
+Fetch all changed files with their addition and deletion line counts:
 
-1. **`gh` CLI**: Run this single command to fetch and sort stats perfectly without downloading the raw diff:
+1. **`gh` CLI**:
    ```bash
-   gh pr view <PR_NUMBER> --json files --jq '.files | sort_by(.additions + .deletions) | .[] | "\(.path) (+\(.additions) / -\(.deletions))"'
+   gh pr view <PR_NUMBER> --json files --jq '.files[] | "\(.path) (+\(.additions) / -\(.deletions))"'
    ```
-2. **GitHub MCP**: Call `get_pull_request_files`. Read the `changes` property (or `additions` + `deletions`) for each file in the JSON response, and sort the list in context.
+2. **GitHub MCP**: Call `get_pull_request_files`. Read `additions`, `deletions`, and `path`.
 3. **Local git**: Parse the output of `git diff --stat origin/<base>...HEAD`.
 
-Once you have the sorted list, fetch the full PR diff (`gh pr diff <PR_NUMBER>` or `git diff`) and save it to a scratch file for reference during the review.
+#### Classify files into two groups:
+
+- **Generated & Lockfiles (Excluded by default):**
+  Identify files matching known generated or dependency manifest patterns:
+  - **Lockfiles:** `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `Gemfile.lock`, `poetry.lock`, `Cargo.lock`, `composer.lock`
+  - **Generated types and schemas:** `*.generated.*`, `*.g.dart`, `*.pb.go`, `schema.json`, `openapi.json`, `*typechain*`, `graphql/types.ts`
+  - **Minified and bundle artifacts:** `*.min.js`, `*.min.css`, `*.map`, `dist/**`, `build/**`
+  - **Snapshots and data fixtures:** `*.snap`, `*.snapshot`, large fixture SQL/JSON files
+- **Review Queue:**
+  All remaining human-authored source and test files. Sort this list by **total lines changed (additions + deletions), ascending**.
+
+Fetch the full PR diff (`gh pr diff <PR_NUMBER>` or `git diff`) and save it to a scratch file for reference during the review.
 
 ### 5. Check environment
 
@@ -85,9 +97,25 @@ cat .meteor/release   # or equivalent version file
 ```
 Note the tech stack (framework version, language) to inform review standards.
 
-### 6. Present the file list
+### 6. Present the file list and confirm exclusions
 
-Show the complete sorted list with line counts before beginning reviews. This helps the user know what's coming and plan skips.
+1. Show the sorted **Review Queue** with line counts.
+2. If generated or lockfiles were detected, display them in an **Excluded Files (Auto-skipped)** list.
+
+**In Manual mode:**
+If excluded files exist, call `ask_question` to confirm exclusions before starting file 1:
+
+```
+Question: "Detected N generated or lock file(s): [list]. These files are excluded from sequential review by default. How do you want to proceed?"
+Options:
+  - "(Recommended) Skip all generated and lock files"
+  - "Include specific generated files in the review queue"
+```
+
+If the user requests specific files, move those files into the Review Queue and sort by line count.
+
+**In Automated mode:**
+Skip excluded files automatically and proceed directly into the sequential review of the Review Queue.
 
 ---
 
@@ -170,7 +198,7 @@ When the user selects **🏁 Done** or all files are reviewed, do the following 
 
 ### Step 1: Offer to revisit skipped files
 
-If any files were skipped, call `ask_question` before the summary:
+If any files in the review queue were skipped during the flow, call `ask_question` before the summary:
 
 ```
 Question: "You skipped N file(s): [list]. Revisit them now?"
@@ -196,6 +224,9 @@ Analyze repository instructions to verify that the pull request is safe to merge
 2. **Verify PR against rules:**
    - **Branch rules:** Verify the target base branch (e.g. `staging`, `main`) and the source branch naming conventions against documented workflow rules.
    - **Required additions:** Check if the changes require accompanying updates (such as unit tests, database migrations, changelog entries, version increments, or documentation).
+   - **Dependency & generator synchronization:**
+     - If `package.json` changed, verify that lockfiles (`package-lock.json`, `pnpm-lock.yaml`, etc.) changed accordingly, and vice versa.
+     - If API/database schema files changed, verify that generated types or client definitions were updated.
    - **Merge safety & destructive changes:** Check for breaking changes, destructive schema modifications, new environment variables, or package updates that require explicit review.
 
 3. **Determine merge readiness:**
@@ -223,6 +254,8 @@ Once all decisions and checks are complete:
 | api/documents/helpers.ts | ⚠️ Minor issues |
 | api/documentTypes/utils/getRefinementState.ts | 🔴 Defect — brand missing from active/ready state return |
 | api/some/skipped-file.ts | ⏭️ Intentionally skipped |
+| package-lock.json | ⏭️ Auto-skipped (lockfile) |
+| api/schema.generated.ts | ⏭️ Auto-skipped (generated) |
 
 **Defects to fix before merge:**
 1. `getRefinementState.ts` — Add `brand` to the final return block (lines 86-92)
@@ -230,12 +263,14 @@ Once all decisions and checks are complete:
 **Merge Safety & Rules Check:**
 - **Branch Target:** ✅ Target branch `staging` matches repository workflow rules
 - **Accompanying Changes:** ⚠️ No test file added for new helper `getRefinementState.ts`
+- **Dependency & Generator Sync:** ✅ `package-lock.json` updated with `package.json` changes
 - **Safety / Destructive Ops:** ✅ No breaking schema changes or destructive operations detected
 
 **Merge Readiness Verdict:** 🔴 Blocked (fix 1 defect before merge)
 
 **Skipped:**
 - `api/some/skipped-file.ts` — not reviewed by user's choice
+- `package-lock.json`, `api/schema.generated.ts` — auto-skipped generated/lock files
 ```
 
 ---
