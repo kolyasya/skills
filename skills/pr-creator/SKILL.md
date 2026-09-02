@@ -44,7 +44,7 @@ Create clear, focused GitHub pull requests (PRs) that transfer context in 30–6
 
 ---
 
-### Step 2: Research Repository Labels & Assignee
+### Step 2: Research Repository Labels, Assignee & Task Link
 
 1. **Fetch Available Labels**:
    ```bash
@@ -56,6 +56,11 @@ Create clear, focused GitHub pull requests (PRs) that transfer context in 30–6
    - **Never create or modify repository labels.** If no label matches, proceed without adding one.
 3. **Assign Current User**:
    - Set the current user as assignee by default (`--assignee "@me"` in `gh`).
+4. **Resolve Task Link**:
+   - Look for a Trello card URL or ticket key in the current session context (conversation, branch name, commit messages, or open editor files).
+   - If not found, call the Trello MCP `get_my_cards` tool to retrieve recent cards assigned to the user, then match against branch name or session topic.
+   - If MCP returns a clear match, record the card URL. If the match is ambiguous or MCP is unavailable, ask the user: *"Do you have a Trello card or task link for this PR?"* Accept a URL or `none`.
+   - Store the resolved URL (or absence) for use in the PR body.
 
 ---
 
@@ -94,6 +99,9 @@ Apply the **`info-style-writing`** skill to draft all PR text. If the skill is a
 
 ## Review Focus
 <!-- Optional: Call out high-risk paths, database migrations, or non-obvious trade-offs. Omit if not applicable. -->
+
+## Task
+<!-- Link to the originating card or ticket. Example: https://trello.com/c/abc123 — omit this section if no task link was resolved. -->
 ```
 
 #### 3. Section Guidelines
@@ -109,6 +117,7 @@ Apply the **`info-style-writing`** skill to draft all PR text. If the skill is a
   - State concrete test cases (e.g., *"Added unit tests for token expiration. Manually tested edge cases with 0, 1, and 100 items."*).
   - **If testing is unclear from context/discussion**: Omit the `## Testing` section entirely and notify the user in the final summary.
 - **Review Focus**: Include only when specific risks exist (e.g., database migrations, heavy queries, critical security paths).
+- **Task**: Include when a task link was resolved in Step 2. Omit when no link was found and the user confirmed `none`.
 
 #### 4. Completion Criterion
 All drafted text must pass the `info-style-writing` self-check (reader value first, active voice, zero fluff, verified facts) before presenting or submitting.
