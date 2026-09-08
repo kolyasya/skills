@@ -41,6 +41,12 @@ Create clear, focused GitHub pull requests (PRs) that transfer context in 30–6
 4. **Identify UI Changes**:
    - Check if frontend assets, styles, or components were modified.
    - If UI changes exist, prompt or remind to attach screenshots or screen recordings.
+5. **Determine Impact Area and Test Scope**:
+   - Trace callers, consumers, routes, and state changes to define the blast radius.
+   - If the impact area or dependency flow is complex or uncertain, dispatch a research subagent to identify affected surfaces before drafting the description.
+   - Determine necessary test coverage based on change type:
+     - **Positive tests**: Verify the intended success flow with valid inputs.
+     - **Negative tests**: Verify boundary values, invalid inputs, error handling, or permission checks.
 
 ---
 
@@ -95,7 +101,15 @@ Apply the **`info-style-writing`** skill to draft all PR text. If the skill is a
 <!-- Required only if > 500 lines changed or > 10 files modified (excluding lockfiles and build artifacts). Explain why this change could not be split. -->
 
 ## Testing
-<!-- Specific manual verification steps or automated test coverage. -->
+<!-- Clear verification steps for human reviewers. Focus strictly on impacted areas. -->
+
+### Manual Verification
+1. **Preconditions**: [Setup, test data, or feature flags. Omit if none.]
+2. **Positive Test**: [Direct action] -> [Expected outcome].
+3. **Negative Test**: [Action with invalid input, edge value, or boundary condition] -> [Expected outcome - omit if not applicable].
+
+### Automated Tests
+- `npm test <path>` (Pass / Added N new tests - omit section if unchanged)
 
 ## Review Focus
 <!-- Optional: Call out high-risk paths, database migrations, or non-obvious trade-offs. Omit if not applicable. -->
@@ -114,8 +128,15 @@ Apply the **`info-style-writing`** skill to draft all PR text. If the skill is a
   - Explain why the PR cannot be split into smaller units (e.g., mechanical refactor, broad migration, or tightly coupled components).
   - **Clarification Rule**: If the reason is clear from the session context or git log, draft it directly. If the reason is not known, ask the user directly in chat before generating the description.
 - **Testing**:
-  - State concrete test cases (e.g., *"Added unit tests for token expiration. Manually tested edge cases with 0, 1, and 100 items."*).
-  - **If testing is unclear from context/discussion**: Omit the `## Testing` section entirely and notify the user in the final summary.
+  - **Audience**: Write for human reviewers. Provide clear, sequential steps that any reviewer can execute without reading the source code.
+  - **Focused scope**: Test only the modified code and its direct dependents. Do not include broad regression suites, generic smoke checks, or unrelated tests.
+  - **Positive and negative cases**: Provide both test paths when applicable to the change:
+    - *Positive test*: Confirm nominal behavior and expected success flow.
+    - *Negative test*: Confirm boundary behavior, invalid inputs, error responses, or access restrictions.
+    - *Bug fix*: Include a test that reproduces the original issue to confirm the fix, plus an adjacent check.
+  - **Automated test reporting**: If automated tests were added or executed, state the exact command and result.
+  - **Zero-runtime changes**: If the change has no runtime impact (e.g., pure documentation, type definitions, or tool configuration), state: *"No runtime impact. Verified with lint/build."* Do not invent unnecessary manual steps.
+  - **Clarification rule**: If the testing procedure cannot be determined from code context or research, ask the user or omit the section and notify the user in the final summary.
 - **Review Focus**: Include only when specific risks exist (e.g., database migrations, heavy queries, critical security paths).
 - **Task**: Include when a task link was resolved in Step 2. Omit when no link was found and the user confirmed `none`.
 
