@@ -47,6 +47,12 @@ Create clear, focused GitHub pull requests (PRs) that transfer context in 30–6
    - Determine necessary test coverage based on change type:
      - **Positive tests**: Verify the intended success flow with valid inputs.
      - **Negative tests**: Verify boundary values, invalid inputs, error handling, or permission checks.
+6. **Check Repository PR Title Conventions**:
+   ```bash
+   gh pr list --limit 5 --state all --json title --jq '.[].title'
+   ```
+   - Extract the established pattern: prefix style, delimiter (space, colon, hyphen), and punctuation.
+
 
 ---
 
@@ -83,8 +89,13 @@ Apply the **`info-style-writing`** skill to draft all PR text. If the skill is a
 #### 1. PR Title Rules
 - Use imperative mood: *"Add pagination to user activity list"* (not *"Added pagination"* or *"Pagination changes"*).
 - Stand alone without opening the PR.
+- **Mirror repository syntax**: Match the exact structure and separator used in existing repository PR titles found in Step 1.
+- **Plain identifiers by default**: Use bare identifiers followed by a space:
+  - Numeric issue: `#123 Add user activity pagination`
+  - Ticket key: `JIRA-123 Add user activity pagination`
+- **Zero invented decoration**: Do not add enclosing characters (brackets `[]`, parentheses `()`, quotes) or punctuation (colons, dashes) unless existing repository PR titles consistently use them.
 - If target branch is not the main/default branch (e.g. `staging`), append the target: `Add user activity pagination (staging)`.
-- If an issue or ticket key exists, prefix or reference standard identifiers (e.g., `[JIRA-123] Add user activity pagination`).
+
 
 #### 2. PR Body Template
 
@@ -147,7 +158,8 @@ All drafted text must pass the `info-style-writing` self-check (reader value fir
 
 ### Step 4: Self-Review & PR Submission
 
-1. **Verify Uncommitted & Stray Changes**:
+1. **Verify Title Syntax & Workspace State**:
+   - Confirm PR title syntax strictly matches existing repository PRs with no unobserved symbols or decorative characters.
    - Ensure debug logs (`console.log`), temporary files, or unrelated config edits are removed.
 2. **Determine PR Readiness**:
    - **Approved / Explicit Request**: If the user explicitly asked to create the PR, prepare standard creation.
